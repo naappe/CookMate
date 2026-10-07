@@ -1,1 +1,50 @@
-
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CookMate — What can I cook?</title>
+<style>
+:root{--bg:#fff8ee;--card:#fff;--ink:#17221d;--muted:#66736c;--green:#174d3a;--orange:#f59a1b;--line:#eadfce}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink)}
+header{background:var(--green);color:#fff;padding:28px 18px 44px}.wrap{max-width:980px;margin:auto}.brand{font-weight:800;font-size:26px}.tag{opacity:.86;margin-top:5px}
+main{margin:-24px auto 40px;padding:0 14px}.panel{background:#fff;border-radius:20px;padding:20px;box-shadow:0 8px 30px #00000012;margin-bottom:16px}
+h1{font-size:25px;margin:0 0 6px}h2{font-size:19px;margin:0 0 12px}.sub{color:var(--muted);margin:0 0 16px}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.protein{border:2px solid var(--line);background:#fff;border-radius:14px;padding:16px 8px;font-size:16px;font-weight:700;cursor:pointer}.protein span{display:block;font-size:27px;margin-bottom:4px}.protein.active{border-color:var(--orange);background:#fff5e4}
+.ingredients{display:flex;flex-wrap:wrap;gap:8px}.chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:9px 12px;cursor:pointer}.chip.on{background:#e9f4ef;border-color:#7ca995;color:#174d3a;font-weight:650}
+button.go{width:100%;border:0;border-radius:13px;padding:14px;background:var(--orange);font-weight:800;font-size:16px;margin-top:17px;cursor:pointer}
+.result{display:none}.result.show{display:block}.recipeHead{display:flex;justify-content:space-between;gap:10px;align-items:start}.badge{background:#e9f4ef;color:#174d3a;padding:6px 9px;border-radius:999px;font-size:12px;font-weight:700}
+.steps{display:grid;grid-template-columns:1fr 1fr;gap:12px}.box{border:1px solid var(--line);border-radius:14px;padding:14px}.box h3{margin:0 0 8px;font-size:15px;color:var(--green)}ul,ol{padding-left:20px;margin:7px 0;line-height:1.55}.warn{font-size:13px;color:var(--muted);border-top:1px solid var(--line);padding-top:12px;margin-top:14px}
+@media(max-width:650px){.grid{grid-template-columns:repeat(2,1fr)}.steps{grid-template-columns:1fr}header{padding-top:22px}.panel{padding:16px}}
+</style></head>
+<body><header><div class="wrap"><div class="brand">🍳 CookMate</div><div class="tag">Know what to mix. Cook with confidence.</div></div></header>
+<main class="wrap">
+<section class="panel"><h1>What are you cooking?</h1><p class="sub">Choose the main ingredient, then tap what you have at home.</p>
+<div class="grid" id="proteins">
+<button class="protein active" data-p="chicken"><span>🍗</span>Chicken</button>
+<button class="protein" data-p="beef"><span>🥩</span>Beef</button>
+<button class="protein" data-p="fish"><span>🐟</span>Fish</button>
+<button class="protein" data-p="egg"><span>🥚</span>Egg</button>
+</div></section>
+<section class="panel"><h2>What do you have?</h2><div class="ingredients" id="ings"></div><button class="go" id="make">Make my recipe →</button></section>
+<section class="panel result" id="result"></section>
+</main>
+<script>
+const ingredientList=["Garlic","Lemon / Lime","Soy sauce","Black pepper","Paprika / Chilli","Oil","Butter","Yogurt","Mayonnaise","Milk","Onion","Potato","Bread","Chickpeas"];
+const data={
+chicken:{title:"Easy Garlic Chicken",marinade:["½ tsp salt","½ tsp black pepper","1 tsp garlic","1 tsp paprika/chilli","1 tbsp oil","1 tbsp lemon/lime"],time:"20–30 min",cook:"Oven 200°C · about 20–25 min",sauces:[["Yogurt","Garlic yogurt sauce: 3 tbsp yogurt + garlic + pinch salt + lemon."],["Mayonnaise","Quick garlic mayo: 2 tbsp mayo + garlic + lemon + pepper."],["Butter","Garlic butter: melt 1 tbsp butter + garlic + pepper."],["","Pan juices: add a splash of water after cooking and stir the browned juices."]]},
+beef:{title:"Pepper Garlic Beef",marinade:["½ tsp salt","1 tsp black pepper","1 tsp garlic","1 tbsp soy sauce","1 tbsp oil"],time:"15–30 min",cook:"Hot pan · cook in batches until browned and safely cooked",sauces:[["Milk","Creamy pepper sauce: pan juices + ⅓ cup milk + black pepper; simmer gently."],["Butter","Pepper butter sauce: 1 tbsp butter + garlic + lots of black pepper."],["Soy sauce","Savory pan sauce: 1 tbsp soy + 2 tbsp water + pepper."],["","Simple pan juices with garlic and pepper."]]},
+fish:{title:"Lemon Garlic Fish",marinade:["½ tsp salt","½ tsp pepper","1 tsp garlic","1 tbsp lemon/lime","1 tsp oil","chilli to taste"],time:"10–15 min",cook:"Oven 200°C · roughly 12–18 min depending on thickness",sauces:[["Yogurt","Lemon yogurt: yogurt + lemon + garlic + pinch salt."],["Butter","Lemon butter: melted butter + lemon + garlic."],["Mayonnaise","Lemon mayo: mayo + lemon + pepper."],["","Fresh lemon/lime over the cooked fish."]]},
+egg:{title:"Savory Eggs",marinade:["Salt to taste","Black pepper","Optional chilli/paprika"],time:"No marination",cook:"Pan: low–medium heat until set to your liking",sauces:[["Milk","For softer scrambled eggs, whisk in a small splash of milk."],["Butter","Cook with butter and finish with black pepper."],["Mayonnaise","Serve with a small spoon of seasoned mayo."],["","Keep it simple with salt, pepper and chilli."]]}
+};
+let protein="chicken", selected=new Set(["Garlic","Black pepper","Paprika / Chilli","Oil"]);
+const ings=document.getElementById("ings");
+function renderIngredients(){ings.innerHTML="";ingredientList.forEach(x=>{let b=document.createElement("button");b.className="chip"+(selected.has(x)?" on":"");b.textContent=x;b.onclick=()=>{selected.has(x)?selected.delete(x):selected.add(x);renderIngredients()};ings.appendChild(b)})}
+renderIngredients();
+document.querySelectorAll(".protein").forEach(b=>b.onclick=()=>{document.querySelectorAll(".protein").forEach(x=>x.classList.remove("active"));b.classList.add("active");protein=b.dataset.p;document.getElementById("result").classList.remove("show")});
+document.getElementById("make").onclick=()=>{
+const d=data[protein];let sauce=d.sauces.find(s=>s[0]&&selected.has(s[0]))||d.sauces[d.sauces.length-1];
+let sides=[];if(selected.has("Potato"))sides.push("Potato: cut small, season with salt + pepper + oil; roast at 200°C until tender and golden.");if(selected.has("Bread"))sides.push("Bread: toast during the final few minutes.");if(selected.has("Chickpeas"))sides.push("Cooked chickpeas: season with salt, pepper and paprika; roast or pan-fry.");
+let available=d.marinade.filter(i=>{let l=i.toLowerCase();return !["garlic","lemon","soy","pepper","paprika","chilli","oil"].some(k=>l.includes(k)) || [...selected].some(s=>l.includes(s.toLowerCase().split(" ")[0]))});
+const r=document.getElementById("result");r.innerHTML=`<div class="recipeHead"><div><h2>${d.title}</h2><p class="sub">A simple combination matched to your selection.</p></div><span class="badge">${protein.toUpperCase()}</span></div><div class="steps"><div class="box"><h3>1 · MARINADE / SEASONING</h3><ul>${available.map(x=>"<li>"+x+"</li>").join("")}</ul><b>Rest:</b> ${d.time}</div><div class="box"><h3>2 · COOK</h3><p>${d.cook}</p><p>Cook poultry and other meats thoroughly; use a food thermometer when possible.</p></div><div class="box"><h3>3 · MATCHING SAUCE</h3><p>${sauce[1]}</p></div><div class="box"><h3>4 · SIDES</h3>${sides.length?"<ul>"+sides.map(x=>"<li>"+x+"</li>").join("")+"</ul>":"<p>Select potato, bread or chickpeas above to get a matching side.</p>"}</div></div><div class="warn">Quantities are a practical starting point for roughly 250–300 g of meat/fish. Adjust salt and chilli to taste. Avoid using leftover raw-meat marinade as a serving sauce unless it has been thoroughly cooked.</div>`;r.classList.add("show");r.scrollIntoView({behavior:"smooth",block:"start"});
+};
+</script></body></html>
